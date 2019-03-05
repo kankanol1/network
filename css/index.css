@@ -1,0 +1,130 @@
+/*****************************样式的初始化*****************/
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    height: 1500px;
+    padding: 50px;
+    background: rgba(247, 255, 254, 0.97);
+}
+
+#canvas {
+    border: 1px solid #f0ad4e;
+
+}
+
+#box {
+    width: 1000px;
+    height: 1000px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#search {
+    width: 150px;
+    height: 28px;
+    padding: 0 5px;
+    margin-right: 10px;
+    border-radius: 5px;
+    outline: none;
+    border: 1px solid green;
+
+}
+
+#searchId .inp {
+    width: 100px;
+    height: 30px;
+    border: none;
+    position: relative;
+    left: 0;
+    top: 0;
+    margin-right: 10px;
+    background-color: #493bff;
+    border-radius: 10px;
+    box-shadow: 3px 3px 5px gray;
+    outline: none;
+    color: white;
+
+}
+
+#searchId .inp:hover {
+    top: -1px;
+    transition: .5s;
+}
+
+div.insert {
+    padding: 10px;
+    border: 1px solid red;
+    border-radius: 10px;
+    background-color: white;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 999;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+h3 {
+    text-align: center;
+    padding: 20px;
+}
+
+div.insert h4 {
+    text-align: center;
+    padding: 10px 0 10px 10px;
+
+}
+
+div.insert h4 a {
+    padding-left: 10px;
+    font-size: 10px;
+
+}
+
+div.insert p {
+    font-size: 10px;
+    margin-top: 5px;
+
+}
+
+div.insert p span {
+    color: gray;
+
+}
+
+div.pay {
+    padding: 10px;
+    border: 1px solid red;
+    border-radius: 10px;
+    background-color: white;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 999;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+div.pay h4 {
+    text-align: center;
+    padding: 10px 0;
+
+}
+
+div.pay p {
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+div.pay p span {
+    color: gray;
+}
+
+#searchId {
+    position: relative;
+    left: 0;
+}

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <style>
+        #main .echarts-tooltip.zr-element{
+            background-color: #ff3d47;!important;
+            display: block;!important;
+        }
+        body{
+            height: 2000px;
+        }
+        div.insert{
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 5px;
+            background-color: #38ff61;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 999;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .insert p.titleP{
+            font-size: 14px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        .insert a{
+            font-size: 10px;
+            display: block;
+            text-align: right;
+            margin-right: 10px;
+        }
+         p{
+             color: #000;
+             font-size: 12px;
+             margin-top: 5px;
+             font-weight: bold;
+        }
+        p span{
+            color: black;
+            font-weight: lighter;
+        }
+
+    </style>
+    <script src="../js/echarts.js"></script>
+</head>
+<body>
+<div id="main" style="width: 1000px; height: 800px;padding-top: 20px;border: 1px solid red;">
+
+</div>
+
+
+
+
+<!-----------------------------53条数据---------------------------------->
+<script src="../js/dataOne.js"></script>
+
+<!-----------------------------197条数据---------------------------------->
+<!--<script src="../js/dataTwo.js"></script>-->
+
+
+
+<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+<script>
+    (function(){
+        /**************************************************添加原型方法************************************************/
+
+        Array.prototype.insert = function (index, item) {  this.splice(index, 0, item);  };
+        Array.prototype.sum = function (){return this.reduce(function (partial, value){return partial + value;})};
+
+        //根据id检测节点索引
+        function checkIndex(id,nodes){
+            for(let i=0;i<nodes.length;i++){
+                if(id == nodes[i].id){
+                    return nodes[i];
+                }
+            }
+        }
+        //根据id检测节点索引
+        function checkIndexId(id,nodes){
+            // console.log(id);
+            for(let i=0;i<nodes.length;i++){
+                if(id == nodes[i].id){
+                    return i;
+                }
+            }
+        }
+        //剔除重复数据
+        function checkData(data){
+            let newData = [];
+            for(let i=0;i<data.length;i++){
+                let flag = 0;
+                for(let j=i+1;j<data.length;j++){
+                    if(data[i].id == data[j].id){
+                        flag =1;
+                    }
+                }
+                if(flag ==0){
+                    newData.push(data[i]);
+                }
+            }
+            return newData;
+        }
+        //判断节点是否为中心节点
+        function checkPoint(n,nodes,centerNodes){
+            let flag = 0;
+            for(let i=0;i<centerNodes.length;i++){
+                // flag = nodes[n].id == centerNodes[i] ? 1:0;
+                if(nodes[n].id == centerNodes[i]){
+                    flag = 1;
+                }
+            }
+            return flag;
+        }
+        //减少交叉边
+        function methodCross(matrixV,nodes,centerNodes){
+            let nodesData = [];
+            for(let i=0;i<nodes.length;i++){
+                if(checkPoint(i,nodes,centerNodes)){
+                    nodesData.push(nodes[i]);
+                    for(let j=0;j<nodes.length;j++){
+                        if(matrixV[i][j]){
+                            nodesData.push(nodes[j]);
+                            for(let k=0;k<nodes.length;k++){
+                                matrixV[k][j]=0;
+                                matrixV[j][k]=0;
+                            }
+                        }
+                    }
+                }
+            }
+            return  nodesData;
+
+        }
+        //增加对称性
+        function methodSymmetric(matrixV,nodes,centerNodes){
+            let nodesData = [];
+            for(let i=0;i<nodes.length;i++){
+                if(checkPoint(i,nodes,centerNodes)){
+                    console.log("kankan");
+                    let degree =0;
+                    for(let j=0;j<nodes.length;j++){
+                        if(matrixV[i][j]){
+                            console.log(matrixV[i][j]);
+                            nodesData.push(nodes[j]);
+                            degree++;
+                            for(let k=0;k<nodes.length;k++){
+                                matrix[k][j]=0;
+                                matrix[j][k]=0;
+                            }
+                        }
+                    }
+                    nodesData.insert(Math.round(nodesData.length - degree/2),nodes[i]);
+                }
+            }
+            return nodesData;
+            /*for(let i=0;i<nodes.length;i++){
+                nodes[i].position_X = c.width/2 + R*Math.cos(i/nodes.length*2*Math.PI);
+                nodes[i].position_Y = c.height/2 + R*Math.sin(i/nodes.length*2*Math.PI);
+            }*/
+        }
+        //邻接矩阵
+        function setMatrix(nodes,links){
+            let matrix = []
+            for(let i=0;i<nodes.length;i++){
+                matrix[i]  = [];
+                for(let j=0;j<nodes.length;j++){
+                    matrix[i][j] =0;
+                }
+            }
+            for(let i=0;i<nodes.length;i++){
+                for(let j=0;j<nodes.length;j++){
+                    for(let k=0;k<links.length;k++){
+                        if(nodes[i].id==links[k].startNode && nodes[j].id == links[k].endNode){
+                            matrix[i][j] = 1;
+                            matrix[j][i] = 1;
+                        }
+                    }
+                }
+            }
+            return matrix;
+
+
+        }
+
+        /*********************************************************处理数据*****************************************/
+        let color = [
+            "#99FF4D", "#CCFF00", "#90EE90", "#9ACD32", "#66FF59",
+            "#8CE600", "#ADFF2F", "#69E64D", "#6CFC00", "#6FFF80",
+            "#00FF00", "#22FF22", "#44FF44", "#66FF66", "#88FF88",
+            "#AAFFAA", "#BBFFBB", "#C0FFC0", "#00FF00",
+        ];//色列选择
+        let nodes = data01.data.nodes;
+        // console.log(nodes.length);
+        nodes = checkData(nodes);
+        let links = data01.data.links;
+        let centerNodes = data01.data.centerNodes;
+
+        for(let i=0;i<nodes.length;i++){
+            if(nodes[i].name == "无"){
+                // console.log(i);
+                nodes[i].name = '无'+i;
+            }
+        }
+        for(let i=0;i<links.length;i++){
+            if(links[i].startNode == links[i].endNode){
+                // console.log(links[i]);
+                links.splice(i,1);
+                // console.log(links.length);
+            }
+        }
+
+
+        //邻接矩阵
+        let matrix = setMatrix(nodes,links);
+        for(let i=0;i<nodes.length;i++){
+            let sum =0;
+            matrix[i].forEach(function(item,index,array){
+                sum += item;
+            });
+            nodes[i].degree = sum;
+        }
+        //减少交叉
+        nodes = methodCross(matrix,nodes,centerNodes);
+        //增加对称性
+        // nodes = methodSymmetric(matrix,nodes,centerNodes);
+        var centerInfo = [];
+        for(let i=0;i<centerNodes.length;i++){
+            centerInfo.push(nodes[checkIndexId(centerNodes[i],nodes)].id.toString());
+        }
+        console.log(centerInfo);
+
+
+        // console.log(nodes[138],nodes[77]);
+
+        // console.log(checkIndexId(links[77].startNode,nodes));
+        // console.log(checkIndexId(links[77].startNode,nodes));
+        // console.log(checkIndexId(links[77].endNode,nodes));
+
+        for(let i=0;i<links.length;i++){
+            links[i].source = links[i].startNode.toString();
+            links[i].target = links[i].endNode.toString();
+        }
+        for(let i=0;i<nodes.length;i++){
+            nodes[i].label1 = nodes[i].label;
+            if(nodes[i].name.length<5){
+                nodes[i].label=nodes[i].name;
+
+            }else{
+                nodes[i].label=nodes[i].name.slice(0,5)+"...";
+
+            }
+            nodes[i].name1=nodes[i].id;
+            nodes[i].name=nodes[i].id.toString();
+            nodes[i].value=1;
+            nodes[i].itemStyle= {
+                normal: {
+                    color:'#2ec7c9'
+                },
+                emphasis: {
+                    borderColor:"#ffa1d7",
+                    borderWidth:3,
+                },
+
+            };
+        }
+        for(let i=0;i<centerNodes.length;i++){
+            nodes[checkIndexId(centerNodes[i],nodes)].value = 4;
+            nodes[checkIndexId(centerNodes[i],nodes)].itemStyle= {
+                normal: {
+                    color: color[Math.floor(Math.random()*color.length)],
+                    borderColor: "#dbdd7d",
+                    borderWidth:6
+                },
+                emphasis: {
+                    borderColor:'yellow',
+                    borderWidth:6,
+                },
+
+            };
+            nodes[checkIndexId(centerNodes[i],nodes)].flag = true;
+        }
+
+        // console.log(nodes);
+        option = {
+            title: {
+                text: '政企关系网络',
+                subtext: '支付关系',
+                x: 'center',
+                y: 'top'
+            },
+            tooltip: {
+                // enterable:true,
+                trigger: 'item',
+                formatter: 'a',
+               /* formatter: function(params) {
+                    var str = '';
+                    if(!params[3]){
+                        let num =0;
+                        if(params[5].flag){
+                            num = params[5].degree;
+                        }
+                        // console.log(params[5].flag);
+                            params = params[5].propertyList;
+                        str = '<div class="insert">';
+                        if(params.name){
+                            str += '<p class="titleP">'+params.name + '</p><a href="http://www.gl-data01.com/">查看详细信息&gt;&gt;</a><hr>';
+                        }
+
+                        if(params.name){
+                            str +='<p>名称：'+ ''+'<span>'+params.name+ '</span></p>';
+                        }
+                        if(params.id){
+                            str +='<p>ID：'+ ''+'<span>'+params.id+ '</span></p>';
+                        }
+
+                        if(num){
+                            str +='<p>付款单位个数：<span>'+num+ '个</span></p>';
+                        }
+                        if(params.ctype){
+                            str +='<p>性质：<span>'+params.ctype+'</span></p>';
+                        }
+                        if(params.type){
+                            str += '<p>类型：<span>'+params.type+'</span></p>';
+                        }
+                        if(params.status){
+                            str += '<p>公司状态：<span>'+params.status+'</span></p>';
+                        }
+                        if(params.time){
+                            str += '<p>注册时间：<span>'+params.time+'</span></p>';
+                        }
+                        str += '</div>';
+                    }else{
+                        params = params[2];
+                        str += '<div class="insert"><p class="titleP">支付关系</p><hr>';
+                        str +='<p>付款方：<span>'+ nodes[checkIndexId(params.startNode,nodes)].propertyList.name+'</span></p>';
+                        str +='<p>收款方：<span>'+ nodes[checkIndexId(params.endNode,nodes)].propertyList.name+'</span></p>';
+                        str +='<p>支付次数：<span>'+ params.count+'</span></p>';
+                        str += '</div>';
+                    }
+                    return str;
+                },*/
+                extraCssText:'width:160px;height:40px;background:red;',
+                position:function(p){
+                    return [p[0]-20,p[1]+20];
+                }
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    restore: {show: true},
+                    magicType: {show: true, type: ['force', 'chord']},
+                    saveAsImage: {show: true}
+                },
+            },
+         /*   legend: {
+                x: 'left',
+                data: centerInfo,
+                orient: 'vertical',
+            },*/
+            series: [{
+                    type: 'graph',
+                    layout: 'force',
+
+                    name: "信息",
+                    ribbonType: false,
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show:true,
+                                textStyle: {
+                                    color: '#333',
+                                    fontSize:12,
+
+                                }
+                            },
+                            nodeStyle: {},
+                            linkStyle: {type: 'line',},
+                        },
+                        emphasis: {
+                            label: {
+                                show: false
+                                // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
+                            },
+                            nodeStyle: {
+                                borderColor: "pink",
+                                borderWidth:3,
+                            },
+                            linkStyle: {
+                                color: "red",
+                                type:"line",
+                            }
+                        },
+                    },
+                    // linkSymbol: 'arrow',//2
+                    edgeSymbol:['','arrow'],
+                    useWorker: false,
+                    minRadius: 10,
+                    maxRadius: 18,
+                    gravity: 1.1,
+                    scaling: 1.1,
+                    // roam: 'move',
+                    data:nodes,
+                    links:links,
+                }
+            ]
+        };
+        // console.log(centerInfo,nodes);
+        var myChart = echarts.init(document.getElementById('main'), 'macarons');
+        myChart.setOption(option);
+                // var ecConfig = require('echarts/config');
+                // function focus(param) {
+                //     var data01 = param.data;
+                //     var links = option.series[0].links;
+                //     var nodes = option.series[0].nodes;
+                //     if (
+                //         data.source !== undefined
+                //         && data.target !== undefined
+                //     ) { //点击的是边
+                //         var sourceNode = nodes.filter(function (n) {
+                //             return n.name == data.source
+                //         })[0];
+                //         var targetNode = nodes.filter(function (n) {
+                //             return n.name == data.target
+                //         })[0];
+                //         console.log("选中了边 " + sourceNode.name + ' -> ' + targetNode.name + ' (' + data.weight + ')');
+                //     } else { // 点击的是点
+                //         console.log("选中了" + data.name + '(' + data.value + ')');
+                //     }
+                // }
+                // myChart.on(ecConfig.EVENT.CLICK, focus)
+                // myChart.on(ecConfig.EVENT.FORCE_LAYOUT_END, function () {
+                //     // console.log(myChart.chart.force.getPosition());
+                // });
+    // });
+    })();
+</script>
+</body>
+</html>
